@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zadania Matematyczne</title>
+    <style>
+        body { background-color: #1a202c; color: white; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .task { background-color: #2d3748; padding: 20px; border-radius: 10px; width: 200px; cursor: pointer; text-align: center; transition: transform 0.3s ease, background-color 0.3s ease; }
+        .task:hover { transform: scale(1.1); background-color: #4a5568; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; animation: fadeIn 0.3s ease-in-out; }
+        .modal-content { background-color: #2d3748; padding: 20px; border-radius: 10px; width: 50%; text-align: center; transform: scale(0.8); animation: zoomIn 0.3s ease-in-out forwards; }
+        .close { cursor: pointer; color: white; font-size: 24px; float: right; }
+        input { padding: 10px; font-size: 16px; }
+        button { padding: 10px; font-size: 16px; background-color: green; color: white; border: none; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover { background-color: darkgreen; }
+        #score { margin-top: 20px; font-size: 18px; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+
+        .bottom-text {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            left: 0%;
+        }
+        .exit {
+            position: absolute;
+            left: 2%;
+        }
+        a{
+            color: white;
+        }
+    </style>
+</head>
+<right><a href="index.html"><h5 class="exit">← Powrót</h5></a></right>
+<body>
+    <h1>Zadania dla klas 4-8</h1>
+    
+    <div class="container" id="tasksContainer"></div>
+    <p id="score">Poprawne odpowiedzi: <span id="correctCount">0</span></p>    
+    <h6 class="bottom-text">Made in China<sup>&copy;</sup></h6>
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="taskTitle"></h2>
+            <p id="taskQuestion"></p>
+            <input type="text" id="userAnswer" placeholder="Twoja odpowiedź">
+            <button onclick="checkAnswer()">Sprawdź</button>
+            <p id="feedback"></p>
+            <button onclick="showExplanation()" id="explanationButton" style="display:none;">Pokaż wyjaśnienie</button>
+            <p id="explanation" style="display:none;"></p>
+        </div>
+    </div>
+    
+    <script>
+        const tasks = [
+            { class: "Klasa 4", question: "12 + 8 = ?", answer: "20" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 4", question: "25 - 9 = ?", answer: "16" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 4", question: "6 × 7 = ?", answer: "42" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 4", question: "48 ÷ 6 = ?", answer: "8" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 5", question: "5/8 + 3/8 = ?", answer: "1" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 5", question: "7/9 - 2/9 = ?", answer: "5/9" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 5", question: "2 × (3 + 5) = ?", answer: "16" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 5", question: "36 ÷ 4 = ?", answer: "9" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 6", question: "Rozwiąż równanie: 3x - 7 = 8", answer: "5" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 6", question: "Oblicz pole trójkąta o podstawie 10 cm i wysokości 6 cm.", answer: "30" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 6", question: "Oblicz objętość sześcianu o boku 4 cm.", answer: "64" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 6", question: "Jaką miarę ma kąt prosty?", answer: "90" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 7", question: "Oblicz pole koła o promieniu 5 cm.", answer: "78.5" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 7", question: "Rozwiąż układ równań: x + y = 10, x - y = 4", answer: "x=7, y=3" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 7", question: "Oblicz sin 30°.", answer: "0.5" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 7", question: "Oblicz cos 60°.", answer: "0.5" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 8", question: "Oblicz deltę dla równania kwadratowego x² - 5x + 6 = 0.", answer: "1" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 8", question: "Oblicz pierwiastek z 144.", answer: "12" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 8", question: "Rozwiąż równanie x² - 4x + 4 = 0.", answer: "x=2" ,explanation: "Wyjasninie: Xd, nie wiem"},
+            { class: "Klasa 8", question: "Oblicz log₂ 16.", answer: "4" ,explanation: "Wyjasninie: Xd, nie wiem"}
+        ];
+        
+        let correctAnswers = 0;
+        
+        const tasksContainer = document.getElementById("tasksContainer");
+        const taskModal = document.getElementById("taskModal");
+        const taskTitle = document.getElementById("taskTitle");
+        const taskQuestion = document.getElementById("taskQuestion");
+        const userAnswer = document.getElementById("userAnswer");
+        const feedback = document.getElementById("feedback");
+        const explanation = document.getElementById("explanation");
+        const explanationButton = document.getElementById("explanationButton");
+        const correctCount = document.getElementById("correctCount");
+        let currentTask;
+
+        function openTask(task) {
+            currentTask = task;
+            taskTitle.innerText = task.class;
+            taskQuestion.innerText = task.question;
+            userAnswer.value = "";
+            feedback.innerText = "";
+            explanation.style.display = "none";
+            explanationButton.style.display = "none";
+            taskModal.style.display = "flex";
+        }
+
+        function closeModal() {
+            taskModal.style.display = "none";
+        }
+
+        function checkAnswer() {
+            if (userAnswer.value.trim() === currentTask.answer) {
+                feedback.innerText = "Poprawna odpowiedź!";
+                feedback.style.color = "green";
+                correctAnswers++;
+                correctCount.innerText = correctAnswers;
+            } else {
+                feedback.innerText = "Błędna odpowiedź.";
+                feedback.style.color = "red";
+                explanationButton.style.display = "block";
+            }
+        }
+
+        function showExplanation() {
+            explanation.innerText = "Poprawna odpowiedź: " + currentTask.answer + ". " + currentTask.explanation;
+            explanation.style.display = "block";
+        }
+
+        tasks.forEach(task => {
+            const taskElement = document.createElement("div");
+            taskElement.className = "task";
+            taskElement.innerText = task.class;
+            taskElement.onclick = () => openTask(task);
+            tasksContainer.appendChild(taskElement);
+        });
+    </script>
+</body>
+</html>
